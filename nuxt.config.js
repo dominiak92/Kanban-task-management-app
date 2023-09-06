@@ -21,7 +21,7 @@ export default {
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
-  css: [],
+  css: ['normalize.css', '~/assets/main.css'],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [],
@@ -48,13 +48,32 @@ export default {
   modules: [
     // https://go.nuxtjs.dev/axios
     "@nuxtjs/axios",
+    '@nuxtjs/auth-next',
   ],
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: "http://localhost:5000/api",
+    baseURL: "https://kanbantaskapp-5a9225a7ab5e.herokuapp.com/api",
   },
+
+  auth: {
+    strategies: {
+      local: {
+        token: {
+          property: 'token', // nazwa pola w odpowiedzi z serwera zawierającej JWT
+        },
+        user: {
+          property: '', // nazwa pola w odpowiedzi z serwera zawierającej dane użytkownika
+        },
+        endpoints: {
+          login: { url: 'users/login', method: 'post' }, // endpoint do logowania
+          logout: false, // endpoint do wylogowania
+          user: { url: 'users/me', method: 'get' }, // endpoint do pobrania danych zalogowanego użytkownika 
+        },
+      },
+    },
+  }, 
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
