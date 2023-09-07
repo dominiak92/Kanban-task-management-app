@@ -7,23 +7,41 @@
       width="600px"
     >
       <template v-slot:activator="{ on, attrs }">
-        <fa
-          v-if="$auth.loggedIn"
-          class="dots"
-          v-bind="attrs"
+        <v-btn
+          class="logoutBtn"
+          small
+          absolute
           @click="logout"
-          :style="{ color: '$mediumgrey' }"
-          :icon="['fa', 'right-from-bracket']"
-        />
-
-        <fa
-          v-else
-          class="dots"
           v-bind="attrs"
-          v-on="on"
-          :style="{ color: '$mediumgrey' }"
-          :icon="['fa', 'right-to-bracket']"
-        />
+          elevation="2"
+          fab
+          v-if="$auth.loggedIn"
+        >
+          <fa
+            class="dots"
+            :style="{ color: '$mediumgrey' }"
+            :icon="['fa', 'right-from-bracket']"
+        /></v-btn>
+        <!-- <v-btn
+            v-if="$auth.loggedIn"
+            @click="logout"
+            v-bind="attrs"
+            color="black"
+            class="logoutBtn"
+            fab
+            dark
+            small
+            absolute
+            right
+          >
+            <v-icon>mdi-logout</v-icon>
+          </v-btn> -->
+        <v-btn v-bind="attrs" v-on="on" small plain fab v-else>
+          <fa
+            class="dots"
+            :style="{ color: '$mediumgrey' }"
+            :icon="['fa', 'right-to-bracket']"
+        /></v-btn>
       </template>
       <v-card class="dialog">
         <component :is="activeComponent"></component>
@@ -129,5 +147,9 @@ export default {
 
 .dots {
   font-size: 20px;
+}
+.logoutBtn {
+  top: 5rem !important;
+  right: 1rem !important;
 }
 </style>

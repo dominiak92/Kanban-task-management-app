@@ -17,7 +17,9 @@
         <fa class="plus" :style="{ color: '$white' }" :icon="['fas', 'plus']" />
     </v-btn>
     </template>
-    <v-card class="dialog"> </v-card>
+    <v-card class="dialog">
+        
+    </v-card>
   </v-dialog>
 </template>
 

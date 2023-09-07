@@ -1,0 +1,260 @@
+<template>
+  <v-dialog
+    v-model="dialog"
+    light
+    transition="slide-x-transition"
+    width="600px"
+  >
+    <template v-slot:activator="{ on, attrs }">
+      <v-btn v-bind="attrs" v-on="on" block elevation="2" raised rounded>
+        <v-icon left> mdi-plus-box-outline</v-icon>create new board</v-btn
+      >
+    </template>
+    <v-card class="dialog">
+      <h2 class="title">Add new board</h2>
+      <p class="smallTitle">Board Name</p>
+      <v-form ref="form" v-model="valid" lazy-validation class="formWrapper">
+        <v-text-field
+          v-model="newBoard.name"
+          outlined
+          :rules="rules('Board Name')"
+          required
+        ></v-text-field>
+        <p class="smallTitle" :style="{ color: '#777F98' }">Board Columns</p>
+        <div
+          v-for="(item, index) in newBoard.items"
+          :key="index"
+          class="nameList"
+        >
+          <div class="boardColumnNames">
+            <v-text-field
+              v-model="newBoard.items[index].name"
+              outlined
+              :rules="rules('Board column name')"
+              required
+            ></v-text-field>
+            <fa
+              v-if="index > 0"
+              :style="{ cursor: 'pointer' }"
+              class="removeIcon"
+              :icon="['fa', 'x']"
+              @click="removeColumn(index)"
+            />
+          </div>
+        </div>
+        <v-btn
+          class="addNewItem"
+          v-bind="attrs"
+          light
+          rounded
+          block
+          color="#F9FAFE"
+          v-on="on"
+          @click="addColumn"
+        >
+          <fa class="plus" :icon="['fa', 'plus']" />
+          Add New Column</v-btn
+        >
+      </v-form>
+      <div class="actions">
+        <v-btn
+          class="btn"
+          v-bind="attrs"
+          :disabled="!valid"
+          light
+          rounded
+          block
+          :style="{ color: '#FFFFFF' }"
+          color="#7C5DFA"
+          v-on="on"
+          @click="sendNewInvoice"
+        >
+          Create new board</v-btn
+        >
+      </div>
+    </v-card>
+  </v-dialog>
+</template>
+
+<script>
+export default {
+  name: "NewBoardDialog",
+
+  data() {
+    return {
+      dialog: false,
+      valid: true,
+      menu: false,
+      attrs: {},
+      on: {},
+      newBoard: {
+        name: "",
+        items: [{name: "Test column name"}],
+      },
+    };
+  },
+
+  methods: {
+    rules(value) {
+      const baseRules = [(v) => !!v || `${value} is required`];
+      return baseRules;
+    },
+    removeColumn(index) {
+      if (index !== 0) {
+        this.newBoard.items.splice(index, 1);
+        this.$refs.form.validate();
+      }
+    },
+    addColumn() {
+      this.newBoard.items.push({
+        name: "",
+      });
+      this.$refs.form.resetValidation();
+    },
+
+    async sendNewInvoice() {
+      if (this.$refs.form.validate()) {
+        this.newInvoice.status = "pending";
+        // await console.log(this.newInvoice)
+        await this.$store.dispatch(
+          "invoices/postInvoices",
+          JSON.stringify(this.newInvoice)
+        );
+        await this.$store.dispatch(
+          "invoices/filterInvoices",
+          this.filteredInvoices
+        );
+        this.dialog = false;
+        // await console.log(JSON.stringify(this.newInvoice))
+      }
+    },
+
+    async sendNewDraftInvoice() {
+      if (this.$refs.form.validate()) {
+        this.newInvoice.status = "draft";
+        await this.$store.dispatch(
+          "invoices/postInvoices",
+          JSON.stringify(this.newInvoice)
+        );
+        await this.$store.dispatch(
+          "invoices/filterInvoices",
+          this.filteredInvoices
+        );
+        this.dialog = false;
+      }
+    },
+
+    reset() {
+      this.$refs.form.reset();
+    },
+    resetValidation() {
+      this.$refs.form.resetValidation();
+    },
+  },
+};
+</script>
+
+<style lang="scss" scoped>
+@import "../../assets/breakpoints.scss";
+@import "../../assets/mixins.scss";
+.dialog {
+  padding: 1.2rem;
+  .title {
+    font-family: $font;
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+  }
+  .smallTitle {
+    color: $mediumgrey;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 0.9375rem; /* 100% */
+    letter-spacing: -0.01563rem;
+  }
+  .formWrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    .nameList {
+      .boardColumnNames {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        .removeIcon {
+          margin: 1.1rem;
+        }
+      }
+    }
+    .addNewItem {
+      align-self: center;
+      margin-bottom: 2rem;
+    }
+  }
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5 rem;
+    .btn {
+      @include md {
+        width: 10rem;
+        font-size: 0.9rem;
+      }
+    }
+  }
+  .cityPostalCountry {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-column-gap: 1rem;
+    grid-row-gap: 0.2rem;
+    .city {
+      grid-area: 1 / 1 / 2 / 2;
+    }
+    .postal {
+      grid-area: 1 / 2 / 2 / 3;
+    }
+    .country {
+      grid-area: 2 / 1 / 3 / 3;
+    }
+  }
+  .qtyPriceTotal {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    .totalForItem {
+      display: flex;
+      width: 10rem;
+    }
+  }
+  .backBtn {
+    width: 5rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.9375rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 0.9375rem; /* 100% */
+    letter-spacing: -0.01563rem;
+    cursor: pointer;
+    .icon {
+      font-size: 0.8rem;
+      color: $main-purple;
+    }
+  }
+}
+
+.plus {
+  color: black;
+  border-radius: 50%;
+  font-size: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 5px;
+  margin-left: -10px;
+}
+</style>
