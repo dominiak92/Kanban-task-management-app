@@ -17,18 +17,18 @@
         <v-text-field
           v-model="newBoard.name"
           outlined
-          :rules="rules('Board Name')"
+          :rules="rules('Board name')"
           required
         ></v-text-field>
         <p class="smallTitle" :style="{ color: '#777F98' }">Board Columns</p>
         <div
-          v-for="(item, index) in newBoard.items"
+          v-for="(item, index) in newBoard.columns"
           :key="index"
           class="nameList"
         >
           <div class="boardColumnNames">
             <v-text-field
-              v-model="newBoard.items[index].name"
+              v-model="newBoard.columns[index].name"
               outlined
               :rules="rules('Board column name')"
               required
@@ -49,6 +49,7 @@
           rounded
           block
           color="#F9FAFE"
+          :style="{ color: '#635FC7', fontWeight: '700' }"
           v-on="on"
           @click="addColumn"
         >
@@ -64,10 +65,10 @@
           light
           rounded
           block
-          :style="{ color: '#FFFFFF' }"
-          color="#7C5DFA"
+          :style="{ color: '#FFFFFF', fontWeight: '700' }"
+          color="#635FC7"
           v-on="on"
-          @click="sendNewInvoice"
+          @click="sendNewBoard"
         >
           Create new board</v-btn
         >
@@ -89,7 +90,11 @@ export default {
       on: {},
       newBoard: {
         name: "",
-        items: [{name: "Test column name"}],
+        columns: [
+          {
+            name: "test",
+          },
+        ],
       },
     };
   },
@@ -101,44 +106,20 @@ export default {
     },
     removeColumn(index) {
       if (index !== 0) {
-        this.newBoard.items.splice(index, 1);
+        this.newBoard.columns.splice(index, 1);
         this.$refs.form.validate();
       }
     },
     addColumn() {
-      this.newBoard.items.push({
-        name: "",
-      });
-      this.$refs.form.resetValidation();
+      this.newBoard.columns.push({ name: "" });
+      this.$refs.form.validate();
     },
 
-    async sendNewInvoice() {
+    async sendNewBoard() {
       if (this.$refs.form.validate()) {
-        this.newInvoice.status = "pending";
-        // await console.log(this.newInvoice)
         await this.$store.dispatch(
-          "invoices/postInvoices",
-          JSON.stringify(this.newInvoice)
-        );
-        await this.$store.dispatch(
-          "invoices/filterInvoices",
-          this.filteredInvoices
-        );
-        this.dialog = false;
-        // await console.log(JSON.stringify(this.newInvoice))
-      }
-    },
-
-    async sendNewDraftInvoice() {
-      if (this.$refs.form.validate()) {
-        this.newInvoice.status = "draft";
-        await this.$store.dispatch(
-          "invoices/postInvoices",
-          JSON.stringify(this.newInvoice)
-        );
-        await this.$store.dispatch(
-          "invoices/filterInvoices",
-          this.filteredInvoices
+          "board/postBoardAndColumns",
+          JSON.stringify(this.newBoard)
         );
         this.dialog = false;
       }
@@ -248,7 +229,6 @@ export default {
 }
 
 .plus {
-  color: black;
   border-radius: 50%;
   font-size: 10px;
   display: flex;
