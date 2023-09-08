@@ -20,17 +20,17 @@
         <v-list-item-group color="primary">
           <v-list-item
             @click="selectBoard(item)"
-            v-for="(item, i) in items"
+            v-for="(item, i) in allBoards"
             :key="i"
           >
             <v-list-item-content>
               <v-list-item-title
                 ><v-icon left> mdi-developer-board</v-icon
-                >{{ item }}</v-list-item-title
+                >{{ item.name }}</v-list-item-title
               >
             </v-list-item-content>
           </v-list-item>
-          <NewBoardDialog />
+          <NewBoardDialog />       
         </v-list-item-group>
       </v-list>
     </v-card>
@@ -38,6 +38,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import NewBoardDialog from "./NewBoardDialog.vue";
 export default {
   name: "BoardSelector",
@@ -51,16 +52,15 @@ export default {
     menu: false,
     attrs: {},
     on: {},
-    items: [
-      "Platform Launchhhhhh",
-      "Platform Launch1",
-      "Platform Launch2",
-      "Platform Launch3",
-    ],
+    selectedBoard: null,
   }),
+  computed: {
+    ...mapGetters('board', ['allBoards']),
+  },
   methods: {
-    selectBoard(item) {
-      this.selectedBoard = item;
+    async selectBoard(item) {
+      this.selectedBoard = item.name;
+      await this.$store.dispatch('board/getBoard', item._id)
     },
   },
 };
