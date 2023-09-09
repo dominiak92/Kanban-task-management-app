@@ -27,12 +27,13 @@
           class="nameList"
         >
           <div class="boardColumnNames">
-            <v-text-field
+            <v-select
+              :items="statuses"
               v-model="newBoard.columns[index].name"
+              :rules="rules('Status')"
               outlined
-              :rules="rules('Board column name')"
-              required
-            ></v-text-field>
+              light
+            ></v-select>
             <fa
               v-if="index > 0"
               :style="{ cursor: 'pointer' }"
@@ -43,12 +44,12 @@
           </div>
         </div>
         <v-btn
+          v-if="newBoard.columns.length < 3"
           class="addNewItem"
           v-bind="attrs"
           light
           rounded
           block
-          color="#F9FAFE"
           :style="{ color: '#635FC7', fontWeight: '700' }"
           v-on="on"
           @click="addColumn"
@@ -88,11 +89,12 @@ export default {
       menu: false,
       attrs: {},
       on: {},
+      statuses: ["To do", "Doing", "Done"],
       newBoard: {
         name: "",
         columns: [
           {
-            name: "test",
+            name: "",
           },
         ],
       },
@@ -102,6 +104,7 @@ export default {
   methods: {
     rules(value) {
       const baseRules = [(v) => !!v || `${value} is required`];
+      baseRules.push(this.isUniqueStatus);
       return baseRules;
     },
     removeColumn(index) {
@@ -113,6 +116,12 @@ export default {
     addColumn() {
       this.newBoard.columns.push({ name: "" });
       this.$refs.form.validate();
+    },
+    isUniqueStatus(value) {
+      const count = this.newBoard.columns.filter(
+        (column) => column.name === value
+      ).length;
+      return count <= 1 || "You already have such a column";
     },
 
     async sendNewBoard() {
@@ -184,50 +193,7 @@ export default {
       }
     }
   }
-  .cityPostalCountry {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    grid-column-gap: 1rem;
-    grid-row-gap: 0.2rem;
-    .city {
-      grid-area: 1 / 1 / 2 / 2;
-    }
-    .postal {
-      grid-area: 1 / 2 / 2 / 3;
-    }
-    .country {
-      grid-area: 2 / 1 / 3 / 3;
-    }
-  }
-  .qtyPriceTotal {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    .totalForItem {
-      display: flex;
-      width: 10rem;
-    }
-  }
-  .backBtn {
-    width: 5rem;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 0.6rem;
-    font-size: 0.9375rem;
-    font-style: normal;
-    font-weight: 700;
-    line-height: 0.9375rem; /* 100% */
-    letter-spacing: -0.01563rem;
-    cursor: pointer;
-    .icon {
-      font-size: 0.8rem;
-      color: $main-purple;
-    }
-  }
 }
-
 .plus {
   border-radius: 50%;
   font-size: 10px;
