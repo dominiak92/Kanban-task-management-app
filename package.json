@@ -18,6 +18,7 @@
     "nuxt": "^2.15.8",
     "vls": "^0.8.5",
     "vue": "^2.7.10",
+    "vue-horizontal": "^0.8.12",
     "vue-server-renderer": "^2.7.10",
     "vue-template-compiler": "^2.7.10",
     "vuedraggable": "^2.24.3",

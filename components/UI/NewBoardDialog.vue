@@ -89,7 +89,7 @@ export default {
       menu: false,
       attrs: {},
       on: {},
-      statuses: ["To do", "Doing", "Done"],
+      statuses: ["Todo", "Doing", "Done"],
       newBoard: {
         name: "",
         columns: [
@@ -126,6 +126,15 @@ export default {
 
     async sendNewBoard() {
       if (this.$refs.form.validate()) {
+        const priorities = {
+          Todo: 1,
+          Doing: 2,
+          Done: 3,
+        };
+        // Sortowanie kolumn na podstawie mapy priorytetów
+        this.newBoard.columns.sort((a, b) => {
+          return (priorities[a.name] || 0) - (priorities[b.name] || 0);
+        });
         await this.$store.dispatch(
           "board/postBoardAndColumns",
           JSON.stringify(this.newBoard)

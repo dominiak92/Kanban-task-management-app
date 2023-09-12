@@ -30,7 +30,7 @@
               >
             </v-list-item-content>
           </v-list-item>
-          <NewBoardDialog />       
+          <NewBoardDialog />
         </v-list-item-group>
       </v-list>
     </v-card>
@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from "vuex";
 import NewBoardDialog from "./NewBoardDialog.vue";
 export default {
   name: "BoardSelector",
@@ -54,13 +54,52 @@ export default {
     on: {},
     selectedBoard: null,
   }),
+
   computed: {
-    ...mapGetters('board', ['allBoards']),
+    ...mapGetters("board", ["allBoards"]),
+  },
+  mounted() {
+    if (this.allBoards.length > 0) {
+      this.selectedBoard = this.allBoards[0].name;
+
+      // Jeżeli potrzebujesz wywołać też akcję ze store dla tego boarda
+      this.$store.dispatch("board/getBoard", this.allBoards[0]._id);
+    }
+  },
+  watch: {
+    allBoards: {
+      immediate: true, // uruchomienie metody od razu po inicjalizacji komponentu
+      handler(newValue) {
+        if (newValue.length > 0) {
+          this.selectedBoard = newValue[0].name;
+          this.$store.dispatch("board/getBoard", newValue[0]._id);
+          this.$store.dispatch("board/setCurrentBoardId", newValue[0]._id);
+          if (Array.isArray(newValue[0].columns)) {
+            newValue[0].columns.forEach(async (column) => {
+              await this.$store.dispatch("board/setColumnDetails", {
+                name: column.name,
+                id: column._id,
+              });
+            });
+          }
+        }
+      },
+    },
   },
   methods: {
     async selectBoard(item) {
+      await this.$store.dispatch("board/clearCurrentColumns");
       this.selectedBoard = item.name;
-      await this.$store.dispatch('board/getBoard', item._id)
+      await this.$store.dispatch("board/getBoard", item._id);
+      await this.$store.dispatch("board/setCurrentBoardId", item._id);
+      if (Array.isArray(item.columns)) {
+        item.columns.forEach(async (column) => {
+          await this.$store.dispatch("board/setColumnDetails", {
+            name: column.name,
+            id: column._id,
+          });
+        });
+      }
     },
   },
 };

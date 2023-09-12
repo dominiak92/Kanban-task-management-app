@@ -5,8 +5,9 @@
       text="You have successfully logged in"
       color="#006200"
     />
-    <div v-if="$auth.loggedIn"></div>
+    <div v-if="$auth.loggedIn">
       <TheBoard :board="singleBoard" />
+    </div>
   </div>
 </template>
 
@@ -18,7 +19,7 @@ export default {
   name: "IndexPage",
   components: { TheAlert, TheBoard },
   computed: {
-    ...mapGetters("board", ["singleBoard"]),
+    ...mapGetters("board", ["singleBoard", "allBoards", "columnsDetails"]),
   },
   watch: {
     "$auth.loggedIn"(loggedIn) {

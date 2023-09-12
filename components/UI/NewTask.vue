@@ -10,6 +10,7 @@ div
       <v-btn
         v-bind="attrs"
         dark
+        :disabled="!currentBoardId"
         rounded
         color="#635FC7"
         class="addBtn"
@@ -72,28 +73,41 @@ div
           Add new subtask</v-btn
         >
         <p class="smallTitle">Status</p>
-        <v-select :rules="rules('Status')" outlined light></v-select>
-        <div class="actions">
-        <v-btn
-          class="btn"
-          v-bind="attrs"
-          :disabled="!valid"
+        <v-select
+          :rules="rules('Status')"
+          :items="statuses"
+          item-text="name"
+          item-value="id"
+          v-model="selectedStatusId"
+          @change="handleStatusChange"
+          outlined
           light
-          rounded
-          block
-          :style="{ color: '#FFFFFF', fontWeight: '700' }"
-          color="#635FC7"
-          v-on="on"
-        >
-          Create Task</v-btn
-        >
-      </div>
+        ></v-select>
+        <div class="actions">
+          <v-btn
+            class="btn"
+            v-bind="attrs"
+            :disabled="!valid"
+            light
+            @click="sendNewTask"
+            rounded
+            block
+            :style="{ color: '#FFFFFF', fontWeight: '700' }"
+            color="#635FC7"
+            v-on="on"
+          >
+            Create Task</v-btn
+          >
+        </div>
       </v-form>
     </v-card>
+    {{ selectedStatusId }}
+    {{ currentBoardId }}
   </v-dialog>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
   name: "NewTask",
 
@@ -104,20 +118,48 @@ export default {
       menu: false,
       attrs: {},
       on: {},
+      statuses: [],
+      selectedStatusId: "",
       newTask: {
         title: "",
         description: "",
+        status: "",
         subtasks: [
           {
             title: "",
-            isCompleted: Boolean,
+            isCompleted: false,
           },
         ],
       },
     };
   },
-  computed: {},
-  watch: {},
+  watch: {
+    columnsDetails: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal) {
+          this.statuses = newVal.map((column) => ({
+            name: column.columnName,
+            id: column.columnId,
+          }));
+        }
+      },
+    },
+    dialog: {
+      immediate: true,
+      handler(newVal) {
+        if (!newVal) {
+          if (this.$refs.form) {
+            this.$refs.form.reset();
+          }
+        }
+      },
+    },
+  },
+  computed: {
+    ...mapGetters("board", ["currentBoardId", "columnsDetails"]),
+    ...mapGetters("board", ["currentColumns"]),
+  },
   methods: {
     rules(value) {
       const baseRules = [(v) => !!v || `${value} is required`];
@@ -136,6 +178,27 @@ export default {
     removeSubtask(index) {
       this.newTask.subtasks.splice(index, 1);
       this.$refs.form.validate();
+    },
+    handleStatusChange(selectedId) {
+      const selectedStatus = this.statuses.find(
+        (status) => status.id === selectedId
+      );
+      if (selectedStatus) {
+        this.newTask.status = selectedStatus.name;
+      }
+    },
+    async sendNewTask() {
+      const payload = {
+        newTask: this.newTask,
+        boardId: this.currentBoardId,
+        statusId: this.selectedStatusId,
+      };
+      if (this.$refs.form.validate()) {
+        await this.$store.dispatch("board/putNewTask", payload);
+        this.dialog = false;
+        this.$refs.form.reset();
+      }
+      await this.$store.dispatch("board/getBoard/");
     },
   },
 };
