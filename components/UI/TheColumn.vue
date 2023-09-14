@@ -15,10 +15,10 @@
         </p>
       </div>
       <draggable
-        :list="tasks"
+
         group="tasks"
         :scroll="true"
-        @change="onColumnChange(columnName, tasks)"
+        @change="onColumnChange(columnName)"
       >
         <div v-for="task in column.tasks" class="task" :key="task._id">
           <p class="taskName">{{ task.title }}</p>

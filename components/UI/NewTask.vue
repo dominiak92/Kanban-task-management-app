@@ -101,8 +101,6 @@ div
         </div>
       </v-form>
     </v-card>
-    {{ selectedStatusId }}
-    {{ currentBoardId }}
   </v-dialog>
 </template>
 
@@ -198,7 +196,7 @@ export default {
         this.dialog = false;
         this.$refs.form.reset();
       }
-      await this.$store.dispatch("board/getBoard/");
+      await this.$store.dispatch("board/getBoard", this.currentBoardId);
     },
   },
 };

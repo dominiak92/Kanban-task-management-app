@@ -19,7 +19,7 @@ export default {
   name: "IndexPage",
   components: { TheAlert, TheBoard },
   computed: {
-    ...mapGetters("board", ["singleBoard", "allBoards", "columnsDetails"]),
+    ...mapGetters("board", ["singleBoard", "allBoards", "columnsDetails", "currentBoardId"]),
   },
   watch: {
     "$auth.loggedIn"(loggedIn) {

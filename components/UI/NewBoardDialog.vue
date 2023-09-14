@@ -79,6 +79,7 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
   name: "NewBoardDialog",
 
@@ -100,7 +101,9 @@ export default {
       },
     };
   },
-
+  computed: {
+    ...mapGetters("board", ["currentBoardId"]),
+  },
   methods: {
     rules(value) {
       const baseRules = [(v) => !!v || `${value} is required`];
@@ -139,6 +142,9 @@ export default {
           "board/postBoardAndColumns",
           JSON.stringify(this.newBoard)
         );
+        await this.$store.dispatch("board/getBoard", this.currentBoardId);
+        // await this.$store.dispatch(`board/fetchBoards`);
+
         this.dialog = false;
       }
     },

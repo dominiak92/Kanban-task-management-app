@@ -4,6 +4,7 @@ export const state = () => ({
   isLoading: false,
   currentBoardId: "",
   currentColumns: [],
+  currentBoardName: ""
 });
 
 export const mutations = {
@@ -26,6 +27,9 @@ export const mutations = {
   CLEAR_CURRENT_COLUMNS(state) {
     state.currentColumns = [];
   },
+  SET_CURRENT_BOARD_NAME(state, name) {
+    state.currentBoardName = name;
+  },
 };
 
 export const actions = {
@@ -44,12 +48,20 @@ export const actions = {
   // POST new board name and columns
   async postBoardAndColumns({ dispatch, commit }, newBoard) {
     try {
-      await this.$axios.$post("/boards", newBoard, {
+      const response = await this.$axios.$post("/boards", newBoard, {
         headers: {
           "Content-Type": "application/json",
         },
       });
+      
+
       await dispatch("fetchBoards");
+      await dispatch("selectBoard", { 
+        name: response.name, 
+        _id: response._id.toString(), 
+        columns: response.columns // Załóżmy, że odpowiedź API zawiera też kolumny
+      });
+      
     } catch (error) {
       console.error("Error when posting boards", error);
     }
@@ -85,6 +97,27 @@ export const actions = {
         }
       },
 
+  // SET CURRENT BOARD NAME 
+  async selectBoard({ dispatch, commit }, item) {
+    try {
+      await dispatch("clearCurrentColumns");
+      commit("SET_CURRENT_BOARD_NAME", item.name);
+      await dispatch("getBoard", item._id);
+      await dispatch("setCurrentBoardId", item._id);
+
+      if (Array.isArray(item.columns)) {
+        for (const column of item.columns) {
+          await dispatch("setColumnDetails", {
+            name: column.name,
+            id: column._id,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Błąd podczas wyboru boarda:", error);
+    }
+  },    
+
   // SET current board ID
   setCurrentBoardId({ commit }, id) {
     commit("SET_CURRENT_BOARD_ID", id);
@@ -103,4 +136,5 @@ export const getters = {
   singleBoard: (state) => state.singleBoard,
   currentBoardId: (state) => state.currentBoardId,
   columnsDetails: (state) => state.currentColumns,
+  currentBoardName: (state) => state.currentBoardName
 };

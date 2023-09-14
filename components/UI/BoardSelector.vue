@@ -12,7 +12,7 @@
         v-on="on"
       >
         <v-icon dark> mdi-menu-down </v-icon>
-        <p class="btnText">{{ selectedBoard }}</p>
+        <p class="btnText">{{ currentBoardName ? currentBoardName : selectedBoard }}</p>
       </v-btn>
     </template>
     <v-card class="mx-auto" width="300" tile>
@@ -56,14 +56,14 @@ export default {
   }),
 
   computed: {
-    ...mapGetters("board", ["allBoards"]),
+    ...mapGetters("board", ["allBoards", "currentBoardName"]),
   },
   mounted() {
     if (this.allBoards.length > 0) {
       this.selectedBoard = this.allBoards[0].name;
 
       // Jeżeli potrzebujesz wywołać też akcję ze store dla tego boarda
-      this.$store.dispatch("board/getBoard", this.allBoards[0]._id);
+      //   this.$store.dispatch("board/getBoard", this.allBoards[0]._id);
     }
   },
   watch: {
@@ -88,18 +88,7 @@ export default {
   },
   methods: {
     async selectBoard(item) {
-      await this.$store.dispatch("board/clearCurrentColumns");
-      this.selectedBoard = item.name;
-      await this.$store.dispatch("board/getBoard", item._id);
-      await this.$store.dispatch("board/setCurrentBoardId", item._id);
-      if (Array.isArray(item.columns)) {
-        item.columns.forEach(async (column) => {
-          await this.$store.dispatch("board/setColumnDetails", {
-            name: column.name,
-            id: column._id,
-          });
-        });
-      }
+      await this.$store.dispatch("board/selectBoard", item);
     },
   },
 };
