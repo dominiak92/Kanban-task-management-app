@@ -7,7 +7,7 @@
 </template>
 <script>
 import TheBackground from "~/components/UI/TheBackground.vue";
-import AppHeader from "~/components/AppHeader.vue";
+import AppHeader from "~/components/UI/header/AppHeader.vue";
 export default {
   components: { TheBackground, AppHeader },
 };

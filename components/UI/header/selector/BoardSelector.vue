@@ -12,7 +12,9 @@
         v-on="on"
       >
         <v-icon dark> mdi-menu-down </v-icon>
-        <p class="btnText">{{ currentBoardName ? currentBoardName : selectedBoard }}</p>
+        <p class="btnText">
+          {{ currentBoardName ? currentBoardName : selectedBoard }}
+        </p>
       </v-btn>
     </template>
     <v-card class="mx-auto" width="300" tile>
@@ -74,6 +76,7 @@ export default {
           this.selectedBoard = newValue[0].name;
           this.$store.dispatch("board/getBoard", newValue[0]._id);
           this.$store.dispatch("board/setCurrentBoardId", newValue[0]._id);
+          this.$store.dispatch("board/setCurrentBoardName", newValue[0].name);
           if (Array.isArray(newValue[0].columns)) {
             newValue[0].columns.forEach(async (column) => {
               await this.$store.dispatch("board/setColumnDetails", {

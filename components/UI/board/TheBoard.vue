@@ -31,8 +31,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "./assets/breakpoints.scss";
-@import "./assets/mixins.scss";
+@import "/assets/breakpoints.scss";
+@import "/assets/mixins.scss";
 .scroll-container {
   display: flex;
   min-height: 100vh;

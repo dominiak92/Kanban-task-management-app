@@ -1,6 +1,6 @@
 <template>
   <div class="AppHeader">
-    <img src="../assets/logo-mobile.svg" alt="logo" />
+    <img src="../../../assets/logo-mobile.svg" alt="logo" />
     <div v-if="$auth.loggedIn" class="menu">
       <BoardSelector />
       <NewTask />
@@ -13,10 +13,10 @@
 
 
 <script>
-import BoardSelector from "./UI/BoardSelector.vue";
-import LoginRegister from "./UI/LoginRegister.vue";
-import NewTask from "./UI/NewTask.vue";
-import ThreeDots from "./UI/ThreeDots.vue";
+import LoginRegister from "../LoginRegister.vue";
+import BoardSelector from "./selector/BoardSelector.vue"
+import NewTask from "./NewTask.vue";
+import ThreeDots from "./dots/ThreeDots.vue";
 export default {
   components: { NewTask, ThreeDots, LoginRegister, BoardSelector },
   data() {

@@ -14,7 +14,7 @@
 <script>
 import { mapGetters } from "vuex";
 import TheAlert from "~/components/UI/TheAlert.vue";
-import TheBoard from "~/components/UI/TheBoard.vue";
+import TheBoard from "~/components/UI/board/TheBoard.vue";
 export default {
   name: "IndexPage",
   components: { TheAlert, TheBoard },

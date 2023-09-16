@@ -160,8 +160,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../../assets/breakpoints.scss";
-@import "../../assets/mixins.scss";
+@import "/assets/breakpoints.scss";
+@import "/assets/mixins.scss";
 .dialog {
   padding: 1.2rem;
   .title {

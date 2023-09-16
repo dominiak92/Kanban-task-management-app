@@ -4,7 +4,7 @@ export const state = () => ({
   isLoading: false,
   currentBoardId: "",
   currentColumns: [],
-  currentBoardName: ""
+  currentBoardName: "",
 });
 
 export const mutations = {
@@ -53,15 +53,13 @@ export const actions = {
           "Content-Type": "application/json",
         },
       });
-      
 
       await dispatch("fetchBoards");
-      await dispatch("selectBoard", { 
-        name: response.name, 
-        _id: response._id.toString(), 
-        columns: response.columns // Załóżmy, że odpowiedź API zawiera też kolumny
+      await dispatch("selectBoard", {
+        name: response.name,
+        _id: response._id.toString(),
+        columns: response.columns, // Załóżmy, że odpowiedź API zawiera też kolumny
       });
-      
     } catch (error) {
       console.error("Error when posting boards", error);
     }
@@ -79,25 +77,34 @@ export const actions = {
     commit("SET_LOADING", false);
   },
 
-    // Put a new task and subtask
-    async putNewTask({ commit }, payload) {
-        try {
-          const { newTask, boardId, statusId } = payload
-          await this.$axios.$post(
-            `/boards/${boardId}/columns/${statusId}/tasks`,
-            JSON.stringify(newTask),
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            }
-          )
-        } catch (error) {
-          console.error('Error when sending new task:', error)
-        }
-      },
+  // Delete board by ID
+  async deleteBoard({ commit }, id) {
+    try {
+      await this.$axios.$delete(`/boards/${id}`);
+    } catch (error) {
+      console.error("Error when deleting board", error);
+    }
+  },
 
-  // SET CURRENT BOARD NAME 
+  // Put a new task and subtask
+  async putNewTask({ commit }, payload) {
+    try {
+      const { newTask, boardId, statusId } = payload;
+      await this.$axios.$post(
+        `/boards/${boardId}/columns/${statusId}/tasks`,
+        JSON.stringify(newTask),
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error when sending new task:", error);
+    }
+  },
+
+  // SET CURRENT BOARD NAME
   async selectBoard({ dispatch, commit }, item) {
     try {
       await dispatch("clearCurrentColumns");
@@ -116,17 +123,23 @@ export const actions = {
     } catch (error) {
       console.error("Błąd podczas wyboru boarda:", error);
     }
-  },    
+  },
 
   // SET current board ID
   setCurrentBoardId({ commit }, id) {
     commit("SET_CURRENT_BOARD_ID", id);
+  },
+  setCurrentBoardName({ commit }, name) {
+    commit("SET_CURRENT_BOARD_NAME", name);
   },
   // SET current columns
   setColumnDetails({ commit }, { name, id }) {
     commit("ADD_COLUMN_DETAILS", { name, id });
   },
   clearCurrentColumns({ commit }) {
+    commit("CLEAR_CURRENT_COLUMNS");
+  },
+  clearDialog({ commit }) {
     commit("CLEAR_CURRENT_COLUMNS");
   },
 };
@@ -136,5 +149,5 @@ export const getters = {
   singleBoard: (state) => state.singleBoard,
   currentBoardId: (state) => state.currentBoardId,
   columnsDetails: (state) => state.currentColumns,
-  currentBoardName: (state) => state.currentBoardName
+  currentBoardName: (state) => state.currentBoardName,
 };

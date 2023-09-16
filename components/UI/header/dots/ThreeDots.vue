@@ -1,10 +1,5 @@
 <template>
-  <v-dialog
-    v-model="dialog"
-    light
-    transition="slide-x-transition"
-    width="600px"
-  >
+  <v-menu :value="menu" @input="menu = $event" bottom origin="center center" transition="scale-transition">
     <template v-slot:activator="{ on, attrs }">
       <fa
         class="dots"
@@ -14,17 +9,31 @@
         :icon="['fa', 'ellipsis-vertical']"
       />
     </template>
-    <v-card class="dialog"> </v-card>
-  </v-dialog>
+    <v-card class="mx-auto" width="300" tile>
+      <v-list light rounded>
+
+          <DeleteBoard @update:dialog="menu = $event"/>
+          <EditBoard/>
+
+      </v-list>
+    </v-card>
+  </v-menu>
 </template>
 
 <script>
+import DeleteBoard from './DeleteBoard.vue';
+import EditBoard from './EditBoard.vue';
+
+
 export default {
   name: "ThreeDots",
+  components: {
+    DeleteBoard,
+    EditBoard,
+  },
 
   data() {
     return {
-      dialog: false,
       valid: true,
       menu: false,
       attrs: {},
@@ -38,8 +47,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "./assets/breakpoints.scss";
-@import "./assets/mixins.scss";
+@import "/assets/breakpoints.scss";
+@import "/assets/mixins.scss";
 .dialog {
   padding: 1.2rem;
 }
@@ -47,4 +56,6 @@ export default {
 .dots {
   font-size: 20px;
 }
+
+
 </style>
