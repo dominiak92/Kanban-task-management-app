@@ -13,6 +13,7 @@
     <v-card class="dialog">
       <h2 class="title">Add new board</h2>
       <p class="smallTitle">Board Name</p>
+      {{ newBoard.columns }}
       <v-form ref="form" v-model="valid" lazy-validation class="formWrapper">
         <v-text-field
           v-model="newBoard.name"

@@ -136,6 +136,9 @@ export const actions = {
   setColumnDetails({ commit }, { name, id }) {
     commit("ADD_COLUMN_DETAILS", { name, id });
   },
+  setCurrentBoardStatuses({ commit }, name) {
+    commit("SET_CURRENT_BOARD_NAME", name);
+  },
   clearCurrentColumns({ commit }) {
     commit("CLEAR_CURRENT_COLUMNS");
   },
