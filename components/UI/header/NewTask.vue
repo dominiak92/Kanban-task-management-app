@@ -10,7 +10,6 @@ div
       <v-btn
         v-bind="attrs"
         dark
-        :disabled="!currentBoardId"
         rounded
         color="#635FC7"
         class="addBtn"
@@ -119,12 +118,12 @@ export default {
       statuses: [],
       selectedStatusId: "",
       newTask: {
-        title: "",
-        description: "",
+        title: "Testowy tytul",
+        description: "Testowy Opis",
         status: "",
         subtasks: [
           {
-            title: "",
+            title: "Subtask testowy",
             isCompleted: false,
           },
         ],
@@ -137,8 +136,8 @@ export default {
       handler(newVal) {
         if (newVal) {
           this.statuses = newVal.map((column) => ({
-            name: column.columnName,
-            id: column.columnId,
+            name: column.name,
+            id: column.id,
           }));
         }
       },
@@ -146,6 +145,9 @@ export default {
     dialog: {
       immediate: true,
       handler(newVal) {
+        if (newVal && this.currentBoardId) {
+          this.fetchCurrentBoardDetails();
+        }
         if (!newVal) {
           if (this.$refs.form) {
             this.$refs.form.reset();
@@ -155,8 +157,11 @@ export default {
     },
   },
   computed: {
-    ...mapGetters("board", ["currentBoardId", "columnsDetails"]),
-    ...mapGetters("board", ["currentColumns"]),
+    ...mapGetters("board", [
+      "currentBoardId",
+      "columnsDetails",
+      "currentColumns",
+    ]),
   },
   methods: {
     rules(value) {
@@ -184,6 +189,9 @@ export default {
       if (selectedStatus) {
         this.newTask.status = selectedStatus.name;
       }
+    },
+    async fetchCurrentBoardDetails() {
+      await this.$store.dispatch("board/getBoard", this.currentBoardId);
     },
     async sendNewTask() {
       const payload = {

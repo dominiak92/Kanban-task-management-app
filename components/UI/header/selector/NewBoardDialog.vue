@@ -13,7 +13,7 @@
     <v-card class="dialog">
       <h2 class="title">Add new board</h2>
       <p class="smallTitle">Board Name</p>
-      {{ newBoard.columns }}
+      {{ newBoard }}
       <v-form ref="form" v-model="valid" lazy-validation class="formWrapper">
         <v-text-field
           v-model="newBoard.name"
@@ -144,7 +144,7 @@ export default {
           JSON.stringify(this.newBoard)
         );
         await this.$store.dispatch("board/getBoard", this.currentBoardId);
-        // await this.$store.dispatch(`board/fetchBoards`);
+        await this.$store.dispatch(`board/fetchBoards`);
 
         this.dialog = false;
       }

@@ -14,15 +14,14 @@ export const mutations = {
   GET_SINGLE_BOARD(state, data) {
     state.singleBoard = data;
   },
-
   SET_LOADING(state, value) {
     state.isLoading = value;
   },
   SET_CURRENT_BOARD_ID(state, value) {
     state.currentBoardId = value;
   },
-  ADD_COLUMN_DETAILS(state, { name, id }) {
-    state.currentColumns.push({ columnName: name, columnId: id });
+  ADD_COLUMN_DETAILS(state, { name, id, tasks }) {
+    state.currentColumns.push({ name: name, id: id, tasks: tasks });
   },
   CLEAR_CURRENT_COLUMNS(state) {
     state.currentColumns = [];
@@ -46,14 +45,13 @@ export const actions = {
   },
 
   // POST new board name and columns
-  async postBoardAndColumns({ dispatch, commit }, newBoard) {
+  async postBoardAndColumns({ dispatch }, newBoard) {
     try {
       const response = await this.$axios.$post("/boards", newBoard, {
         headers: {
           "Content-Type": "application/json",
         },
       });
-
       await dispatch("fetchBoards");
       await dispatch("selectBoard", {
         name: response.name,
@@ -65,14 +63,39 @@ export const actions = {
     }
   },
 
+  //EDIT board name and columns
+
+  async editBoardAndColumns({ dispatch, state }, editedBoard) {
+    console.log("Dane z editedBoard z vuexa ", editedBoard);
+    try {
+      const currentBoardId = state.currentBoardId;
+
+      if (currentBoardId) {
+        await this.$axios.$put(`/boards/${currentBoardId}`, editedBoard, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      }
+      await dispatch("fetchBoards");
+      // await dispatch("selectBoard", editedBoard);
+      await dispatch("getBoard", currentBoardId);
+
+    } catch (error) {
+      console.error("Error when editing boards", error);
+    }
+  },
+
   // GET board by ID
   async getBoard({ commit }, id) {
     commit("SET_LOADING", true);
     try {
-      const response = await this.$axios.$get(`/boards/${id}`);
-      commit("GET_SINGLE_BOARD", response);
+      if (id) {
+        const response = await this.$axios.$get(`/boards/${id}`);
+        commit("GET_SINGLE_BOARD", response);
+      }
     } catch (error) {
-      console.error("Błąd podczas pobierania faktur:", error);
+      console.error("Error when fetching single board:", error);
     }
     commit("SET_LOADING", false);
   },
@@ -107,16 +130,18 @@ export const actions = {
   // SET CURRENT BOARD NAME
   async selectBoard({ dispatch, commit }, item) {
     try {
+      console.log(JSON.stringify(item));
       await dispatch("clearCurrentColumns");
       commit("SET_CURRENT_BOARD_NAME", item.name);
-      await dispatch("getBoard", item._id);
+      console.log('id w selectBoard w vuex ', item._id)
       await dispatch("setCurrentBoardId", item._id);
-
+      await dispatch("getBoard", item._id);
       if (Array.isArray(item.columns)) {
         for (const column of item.columns) {
           await dispatch("setColumnDetails", {
             name: column.name,
             id: column._id,
+            tasks: column.tasks,
           });
         }
       }
@@ -127,14 +152,15 @@ export const actions = {
 
   // SET current board ID
   setCurrentBoardId({ commit }, id) {
+    console.log("Setting currentBoardId", id);
     commit("SET_CURRENT_BOARD_ID", id);
   },
   setCurrentBoardName({ commit }, name) {
     commit("SET_CURRENT_BOARD_NAME", name);
   },
   // SET current columns
-  setColumnDetails({ commit }, { name, id }) {
-    commit("ADD_COLUMN_DETAILS", { name, id });
+  setColumnDetails({ commit }, { name, id, tasks }) {
+    commit("ADD_COLUMN_DETAILS", { name, id, tasks });
   },
   setCurrentBoardStatuses({ commit }, name) {
     commit("SET_CURRENT_BOARD_NAME", name);

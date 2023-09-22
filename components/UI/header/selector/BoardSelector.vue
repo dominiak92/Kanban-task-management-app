@@ -60,38 +60,27 @@ export default {
   computed: {
     ...mapGetters("board", ["allBoards", "currentBoardName"]),
   },
-  mounted() {
-    if (this.allBoards.length > 0) {
-      this.selectedBoard = this.allBoards[0].name;
-
-      // Jeżeli potrzebujesz wywołać też akcję ze store dla tego boarda
-      //   this.$store.dispatch("board/getBoard", this.allBoards[0]._id);
-    }
-  },
-  watch: {
-    allBoards: {
-      immediate: true, // uruchomienie metody od razu po inicjalizacji komponentu
-      handler(newValue) {
-        if (newValue.length > 0) {
-          this.selectedBoard = newValue[0].name;
-          this.$store.dispatch("board/getBoard", newValue[0]._id);
-          this.$store.dispatch("board/setCurrentBoardId", newValue[0]._id);
-          this.$store.dispatch("board/setCurrentBoardName", newValue[0].name);
-          if (Array.isArray(newValue[0].columns)) {
-            newValue[0].columns.forEach(async (column) => {
-              await this.$store.dispatch("board/setColumnDetails", {
-                name: column.name,
-                id: column._id,
-              });
-            });
-          }
-        }
-      },
-    },
-  },
+  // mounted() {
+  //   this.initializeBoard();
+  // },
+  // watch: {
+  //   allBoards: {
+  //     immediate: true,
+  //     handler() {
+  //       this.initializeBoard();
+  //     },
+  //   },
+  // },
   methods: {
     async selectBoard(item) {
       await this.$store.dispatch("board/selectBoard", item);
+    },
+    async initializeBoard() {
+      const firstBoard = this.allBoards[0];
+      if (firstBoard) {
+        this.selectedBoard = firstBoard.name;
+        await this.$store.dispatch("board/selectBoard", firstBoard);
+      }
     },
   },
 };

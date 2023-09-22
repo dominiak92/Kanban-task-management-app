@@ -21,39 +21,47 @@
     </template>
     <v-card class="dialog">
       <h2 class="title">Edit board</h2>
+      {{ columnsDetails }}
       <p class="smallTitle">Board Name</p>
+      {{ editedBoard }}
       <v-form ref="form" v-model="valid" lazy-validation class="formWrapper">
         <v-text-field
-          v-model="currentBoardName"
+          v-model="editedBoard.name"
+          :rules="rules('Board name')"
           outlined
           required
         ></v-text-field>
-        {{ columnsDetails }}
-        {{ JSON.stringify(editedBoard) + " to jest moj editedBoard" }}
         <p class="smallTitle" :style="{ color: '#777F98' }">Board Columns</p>
-        <div v-for="(item, index) in editedBoard" :key="index" class="nameList">
-          {{ item.columnName }}
+        <div
+          v-for="(item, index) in editedBoard.columns"
+          :key="index"
+          class="nameList"
+        >
           <div class="boardColumnNames">
             <v-select
               :items="statuses"
-              v-model="item.columnName"
+              v-model="item.name"
+              :rules="rules('Status')"
               outlined
               light
             ></v-select>
             <fa
-              v-if="index > 0"
+              v-if="editedBoard.columns.length > 1"
               :style="{ cursor: 'pointer' }"
               class="removeIcon"
               :icon="['fa', 'x']"
+              @click="removeColumn(index)"
             />
           </div>
         </div>
         <v-btn
+          v-if="editedBoard.columns.length < 3"
           class="addNewItem"
           v-bind="attrs"
           light
           rounded
           block
+          @click="addColumn"
           :style="{ color: '#635FC7', fontWeight: '700' }"
           v-on="on"
         >
@@ -69,11 +77,12 @@
           light
           rounded
           block
+          @click="sendEditedBoard"
           :style="{ color: '#FFFFFF', fontWeight: '700' }"
           color="#635FC7"
           v-on="on"
         >
-          Create new board</v-btn
+          Edit board</v-btn
         >
       </div>
     </v-card>
@@ -94,26 +103,47 @@ export default {
       attrs: {},
       on: {},
       statuses: ["Todo", "Doing", "Done"],
-      editedBoard: {
-        columnName: "",
-        columnId: "",
-      },
+      name: "",
+      editedBoard: { _id: "", name: "", columns: [] },
     };
   },
   computed: {
-    ...mapGetters("board", ["currentBoardName", "columnsDetails"]),
+    ...mapGetters("board", [
+      "currentBoardName",
+      "columnsDetails",
+      "currentBoardId",
+    ]),
   },
   watch: {
     columnsDetails: {
       handler(newVal) {
-        console.log("Oto nowa wartość columnsDetails:", newVal);
-        this.editedBoard = _.cloneDeep(newVal);
+        if (newVal && newVal.length > 0) {
+          this.editedBoard.columns = _.cloneDeep(newVal);
+        }
       },
       deep: true,
     },
+    currentBoardId: {
+      immediate: true,
+      handler(newVal, oldVal) {
+        console.log("Zmiana currentBoardId z", oldVal, "na", newVal);
+        if (newVal && newVal.length > 0) {
+          this.editedBoard._id = newVal
+        }
+      },
+    },
+    currentBoardName: {
+      handler(newVal) {
+        if (newVal) {
+          this.editedBoard.name = newVal;
+        }
+      },
+    },
   },
   mounted() {
-    console.log("Początkowa wartość columnsDetails:", this.columnsDetails);
+    this.$store.dispatch(`board/fetchBoards`);
+    this.editedBoard.name = this.currentBoardName;
+    this.editedBoard.columns = _.cloneDeep(this.columnsDetails);
   },
   methods: {
     rules(value) {
@@ -121,9 +151,46 @@ export default {
       baseRules.push(this.isUniqueStatus);
       return baseRules;
     },
+    isUniqueStatus(value) {
+      const count = this.editedBoard.columns.filter(
+        (column) => column.name === value
+      ).length;
+      return count <= 1 || "You already have such a column";
+    },
+    addColumn() {
+      this.editedBoard.columns.push({ name: "" });
+      this.$refs.form.validate();
+    },
     removeColumn(index) {
-      if (index !== 0) {
-        this.$refs.form.validate();
+      this.editedBoard.columns.splice(index, 1);
+      this.$refs.form.validate();
+    },
+    async sendEditedBoard() {
+      if (this.$refs.form.validate()) {
+        const priorities = {
+          Todo: 1,
+          Doing: 2,
+          Done: 3,
+        };
+        // Sortowanie kolumn na podstawie mapy priorytetów
+        this.editedBoard.columns.sort((a, b) => {
+          return (priorities[a.name] || 0) - (priorities[b.name] || 0);
+        });
+        console.log(
+          "Przed wywołaniem selectBoard, currentBoardId:",
+          this.currentBoardId
+        );
+        await this.$store.dispatch(
+          "board/editBoardAndColumns",
+          JSON.stringify(this.editedBoard)
+        );
+        console.log(
+          "Po wywołaniu selectBoard, currentBoardId:",
+          this.currentBoardId
+        );
+        await this.$store.dispatch(`board/fetchBoards`);
+        await this.$store.dispatch("board/selectBoard", this.editedBoard);
+        this.dialog = false;
       }
     },
     reset() {
