@@ -21,9 +21,7 @@
     </template>
     <v-card class="dialog">
       <h2 class="title">Edit board</h2>
-      {{ columnsDetails }}
       <p class="smallTitle">Board Name</p>
-      {{ editedBoard }}
       <v-form ref="form" v-model="valid" lazy-validation class="formWrapper">
         <v-text-field
           v-model="editedBoard.name"
@@ -45,12 +43,17 @@
               outlined
               light
             ></v-select>
-            <fa
+            <!-- <fa
               v-if="editedBoard.columns.length > 1"
               :style="{ cursor: 'pointer' }"
               class="removeIcon"
               :icon="['fa', 'x']"
               @click="removeColumn(index)"
+            /> -->
+            <EditWarning
+              v-if="editedBoard.columns.length > 1"
+              :columnName="item.name"
+              :removeColumn="() => removeColumn(index)"
             />
           </div>
         </div>
@@ -91,9 +94,13 @@
 
 <script>
 import _ from "lodash";
+import EditWarning from "./EditWarning.vue";
 import { mapGetters } from "vuex";
 export default {
   name: "EditBoard",
+  components: {
+    EditWarning,
+  },
 
   data() {
     return {
@@ -123,12 +130,20 @@ export default {
       },
       deep: true,
     },
+    dialog: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal && this.currentBoardId) {
+          this.fetchCurrentBoardDetails();
+        }
+      },
+    },
     currentBoardId: {
       immediate: true,
       handler(newVal, oldVal) {
         console.log("Zmiana currentBoardId z", oldVal, "na", newVal);
         if (newVal && newVal.length > 0) {
-          this.editedBoard._id = newVal
+          this.editedBoard._id = newVal;
         }
       },
     },
@@ -165,6 +180,9 @@ export default {
       this.editedBoard.columns.splice(index, 1);
       this.$refs.form.validate();
     },
+    async fetchCurrentBoardDetails() {
+      await this.$store.dispatch("board/getBoard", this.currentBoardId);
+    },
     async sendEditedBoard() {
       if (this.$refs.form.validate()) {
         const priorities = {
@@ -176,20 +194,14 @@ export default {
         this.editedBoard.columns.sort((a, b) => {
           return (priorities[a.name] || 0) - (priorities[b.name] || 0);
         });
-        console.log(
-          "Przed wywołaniem selectBoard, currentBoardId:",
-          this.currentBoardId
-        );
         await this.$store.dispatch(
           "board/editBoardAndColumns",
           JSON.stringify(this.editedBoard)
         );
-        console.log(
-          "Po wywołaniu selectBoard, currentBoardId:",
-          this.currentBoardId
-        );
+        console.log("Po wysłaniu, stan columnDetails:", JSON.stringify(this.columnsDetails));
+        // await this.$store.dispatch("board/selectBoard", this.editedBoard);
+        await this.$store.dispatch("board/getBoard", this.currentBoardId);
         await this.$store.dispatch(`board/fetchBoards`);
-        await this.$store.dispatch("board/selectBoard", this.editedBoard);
         this.dialog = false;
       }
     },

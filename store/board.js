@@ -14,6 +14,15 @@ export const mutations = {
   GET_SINGLE_BOARD(state, data) {
     state.singleBoard = data;
   },
+  UPDATE_CURRENT_COLUMNS(state, newColumns) {
+    console.log(
+      `Stan przed update w vuex ${JSON.stringify(state.currentColumns)}`
+    );
+    state.currentColumns = newColumns;
+    console.log(
+      `Stan po update w vuex ${JSON.stringify(state.currentColumns)}`
+    );
+  },
   SET_LOADING(state, value) {
     state.isLoading = value;
   },
@@ -44,6 +53,11 @@ export const actions = {
     commit("SET_LOADING", false);
   },
 
+  async refreshAll({ dispatch, state }) {
+    await dispatch("fetchBoards");
+    await dispatch("getBoard", state.currentBoardId);
+  },
+
   // POST new board name and columns
   async postBoardAndColumns({ dispatch }, newBoard) {
     try {
@@ -65,8 +79,7 @@ export const actions = {
 
   //EDIT board name and columns
 
-  async editBoardAndColumns({ dispatch, state }, editedBoard) {
-    console.log("Dane z editedBoard z vuexa ", editedBoard);
+  async editBoardAndColumns({ dispatch, state, commit }, editedBoard) {
     try {
       const currentBoardId = state.currentBoardId;
 
@@ -76,11 +89,25 @@ export const actions = {
             "Content-Type": "application/json",
           },
         });
+        const updatedBoard = await this.$axios.$get(
+          `/boards/${currentBoardId}`
+        );
+        commit(
+          "UPDATE_CURRENT_COLUMNS",
+          updatedBoard.columns.map((column) => ({
+            name: column.name,
+            id: column._id,
+            tasks: column.tasks,
+          }))
+        );
+        commit("SET_CURRENT_BOARD_NAME", updatedBoard.name);
+        console.log(`updatedBoard ${JSON.stringify(updatedBoard.columns)}`);
+        console.log(
+          `currentColumns w funkcji edit ${JSON.stringify(
+            state.currentColumns
+          )}`
+        );
       }
-      await dispatch("fetchBoards");
-      // await dispatch("selectBoard", editedBoard);
-      await dispatch("getBoard", currentBoardId);
-
     } catch (error) {
       console.error("Error when editing boards", error);
     }
@@ -110,9 +137,10 @@ export const actions = {
   },
 
   // Put a new task and subtask
-  async putNewTask({ commit }, payload) {
+  async putNewTask({ commit, dispatch, state }, payload) {
     try {
       const { newTask, boardId, statusId } = payload;
+      // console.log(`id nowego statusu to ${statusId}`);
       await this.$axios.$post(
         `/boards/${boardId}/columns/${statusId}/tasks`,
         JSON.stringify(newTask),
@@ -122,28 +150,51 @@ export const actions = {
           },
         }
       );
+      const updatedBoard = await this.$axios.$get(
+        `/boards/${state.currentBoardId}`
+      );
+      commit(
+        "UPDATE_CURRENT_COLUMNS",
+        updatedBoard.columns.map((column) => ({
+          name: column.name,
+          id: column._id,
+          tasks: column.tasks,
+        }))
+      );
+      console.log(
+        `currentColumns w funkcji newTask - vuex ${JSON.stringify(
+          state.currentColumns
+        )}`
+      );
+      // await dispatch("refreshAll");
     } catch (error) {
       console.error("Error when sending new task:", error);
     }
   },
 
   // SET CURRENT BOARD NAME
-  async selectBoard({ dispatch, commit }, item) {
+  async selectBoard({ dispatch, commit, state }, item) {
     try {
-      console.log(JSON.stringify(item));
-      await dispatch("clearCurrentColumns");
+      // console.log(
+      //   `Stan boarda po wysłaniu do funkcji selectBoard ${JSON.stringify(item)}`
+      // );
+      // console.log("columnsDetails przed czyszczeniem", JSON.stringify(state.currentColumns));
+      // await dispatch("clearCurrentColumns");
+      // console.log("columnsDetails po czyszczeniu", JSON.stringify(state.currentColumns));
       commit("SET_CURRENT_BOARD_NAME", item.name);
-      console.log('id w selectBoard w vuex ', item._id)
+      // console.log("id w selectBoard w vuex ", item._id);
       await dispatch("setCurrentBoardId", item._id);
       await dispatch("getBoard", item._id);
       if (Array.isArray(item.columns)) {
-        for (const column of item.columns) {
-          await dispatch("setColumnDetails", {
+        // Zaktualizuj obecne kolumny używając nowej mutacji
+        commit(
+          "UPDATE_CURRENT_COLUMNS",
+          item.columns.map((column) => ({
             name: column.name,
             id: column._id,
             tasks: column.tasks,
-          });
-        }
+          }))
+        );
       }
     } catch (error) {
       console.error("Błąd podczas wyboru boarda:", error);
@@ -152,7 +203,7 @@ export const actions = {
 
   // SET current board ID
   setCurrentBoardId({ commit }, id) {
-    console.log("Setting currentBoardId", id);
+    // console.log("Setting currentBoardId", id);
     commit("SET_CURRENT_BOARD_ID", id);
   },
   setCurrentBoardName({ commit }, name) {

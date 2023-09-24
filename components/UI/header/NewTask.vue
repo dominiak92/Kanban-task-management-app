@@ -74,7 +74,7 @@ div
         <p class="smallTitle">Status</p>
         <v-select
           :rules="rules('Status')"
-          :items="statuses"
+          :items="columnsDetails"
           item-text="name"
           item-value="id"
           v-model="selectedStatusId"
@@ -115,7 +115,6 @@ export default {
       menu: false,
       attrs: {},
       on: {},
-      statuses: [],
       selectedStatusId: "",
       newTask: {
         title: "Testowy tytul",
@@ -129,32 +128,6 @@ export default {
         ],
       },
     };
-  },
-  watch: {
-    columnsDetails: {
-      immediate: true,
-      handler(newVal) {
-        if (newVal) {
-          this.statuses = newVal.map((column) => ({
-            name: column.name,
-            id: column.id,
-          }));
-        }
-      },
-    },
-    dialog: {
-      immediate: true,
-      handler(newVal) {
-        if (newVal && this.currentBoardId) {
-          this.fetchCurrentBoardDetails();
-        }
-        if (!newVal) {
-          if (this.$refs.form) {
-            this.$refs.form.reset();
-          }
-        }
-      },
-    },
   },
   computed: {
     ...mapGetters("board", [
@@ -182,16 +155,16 @@ export default {
       this.newTask.subtasks.splice(index, 1);
       this.$refs.form.validate();
     },
-    handleStatusChange(selectedId) {
-      const selectedStatus = this.statuses.find(
-        (status) => status.id === selectedId
+    handleStatusChange() {
+      console.log("selectedStatusId przed:", this.selectedStatusId);
+      const selectedStatus = this.columnsDetails.find(
+        (status) => status.id === this.selectedStatusId
       );
       if (selectedStatus) {
+        console.log("Znaleziony status:", selectedStatus.name);
         this.newTask.status = selectedStatus.name;
       }
-    },
-    async fetchCurrentBoardDetails() {
-      await this.$store.dispatch("board/getBoard", this.currentBoardId);
+      console.log("selectedStatusId po:", this.selectedStatusId);
     },
     async sendNewTask() {
       const payload = {
@@ -201,6 +174,7 @@ export default {
       };
       if (this.$refs.form.validate()) {
         await this.$store.dispatch("board/putNewTask", payload);
+        await this.$store.dispatch("board/fetchBoards");
         this.dialog = false;
         this.$refs.form.reset();
       }
