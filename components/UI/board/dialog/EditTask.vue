@@ -1,4 +1,3 @@
-
 <template>
   <v-dialog
     v-model="dialog"
@@ -8,29 +7,29 @@
   >
     <template v-slot:activator="{ on, attrs }">
       <v-btn
+        color="#8471f2"
         v-bind="attrs"
-        dark
-        rounded
-        color="#635FC7"
-        class="addBtn"
+        :style="{ color: '#ffffff' }"
         v-on="on"
+        block
+        elevation="2"
+        raised
+        rounded
       >
-        <fa class="plus" :style="{ color: '$white' }" :icon="['fas', 'plus']" />
-      </v-btn>
+        <v-icon left> mdi-view-dashboard-edit-outline </v-icon>edit task</v-btn
+      >
     </template>
     <v-card class="dialog">
-      <h2 class="title">Add new task</h2>
+        <h2 class="title">Edit task</h2>
       <p class="smallTitle">Title</p>
-      <v-form ref="form" v-model="valid" lazy-validation class="formWrapper">
+        <v-form ref="form" v-model="valid" lazy-validation class="formWrapper">
         <v-text-field
-          v-model="newTask.title"
           outlined
           :rules="rules('Task title')"
           required
         ></v-text-field>
         <p class="smallTitle">Description</p>
         <v-textarea
-          v-model="newTask.description"
           clearable
           outlined
           :rules="rules('Description')"
@@ -39,13 +38,12 @@
         <p class="smallTitle">Subtasks</p>
 
         <div
-          v-for="(subtask, index) in newTask.subtasks"
-          :key="index"
+
           class="nameList"
         >
           <div class="subTask">
             <v-text-field
-              v-model="newTask.subtasks[index].title"
+
               outlined
               :rules="rules('Subtask name')"
               required
@@ -54,7 +52,6 @@
               :style="{ cursor: 'pointer' }"
               class="removeIcon"
               :icon="['fa', 'x']"
-              @click="removeSubtask(index)"
             />
           </div>
         </div>
@@ -95,7 +92,7 @@
             color="#635FC7"
             v-on="on"
           >
-            Create Task</v-btn
+            Edit Task</v-btn
           >
         </div>
       </v-form>
@@ -104,9 +101,10 @@
 </template>
 
 <script>
+import _ from "lodash";
 import { mapGetters } from "vuex";
 export default {
-  name: "NewTask",
+  name: "EditTask",
 
   data() {
     return {
@@ -115,31 +113,104 @@ export default {
       menu: false,
       attrs: {},
       on: {},
-      selectedStatusId: "",
-      newTask: {
-        title: "Testowy tytul",
-        description: "Testowy Opis",
-        status: "",
-        subtasks: [
-          {
-            title: "Subtask testowy",
-            isCompleted: false,
-          },
-        ],
-      },
+      statuses: ["Todo", "Doing", "Done"],
+      name: "",
+      editedBoard: { _id: "", name: "", columns: [] },
     };
   },
   computed: {
     ...mapGetters("board", [
-      "currentBoardId",
+      "currentBoardName",
       "columnsDetails",
-      "currentColumns",
+      "currentBoardId",
     ]),
+  },
+  watch: {
+    columnsDetails: {
+      handler(newVal) {
+        if (newVal && newVal.length > 0) {
+          this.editedBoard.columns = _.cloneDeep(newVal);
+        }
+      },
+      deep: true,
+    },
+    dialog: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal && this.currentBoardId) {
+          this.fetchCurrentBoardDetails();
+        }
+      },
+    },
+    currentBoardId: {
+      immediate: true,
+      handler(newVal, oldVal) {
+        console.log("Zmiana currentBoardId z", oldVal, "na", newVal);
+        if (newVal && newVal.length > 0) {
+          this.editedBoard._id = newVal;
+        }
+      },
+    },
+    currentBoardName: {
+      handler(newVal) {
+        if (newVal) {
+          this.editedBoard.name = newVal;
+        }
+      },
+    },
+  },
+  mounted() {
+    this.$store.dispatch(`board/fetchBoards`);
+    this.editedBoard.name = this.currentBoardName;
+    this.editedBoard.columns = _.cloneDeep(this.columnsDetails);
   },
   methods: {
     rules(value) {
       const baseRules = [(v) => !!v || `${value} is required`];
+      baseRules.push(this.isUniqueStatus);
       return baseRules;
+    },
+    isUniqueStatus(value) {
+      const count = this.editedBoard.columns.filter(
+        (column) => column.name === value
+      ).length;
+      return count <= 1 || "You already have such a column";
+    },
+    addColumn() {
+      this.editedBoard.columns.push({ name: "" });
+      this.$refs.form.validate();
+    },
+    removeColumn(index) {
+      this.editedBoard.columns.splice(index, 1);
+      this.$refs.form.validate();
+    },
+    async fetchCurrentBoardDetails() {
+      await this.$store.dispatch("board/getBoard", this.currentBoardId);
+    },
+    async sendEditedBoard() {
+      if (this.$refs.form.validate()) {
+        const priorities = {
+          Todo: 1,
+          Doing: 2,
+          Done: 3,
+        };
+        // Sortowanie kolumn na podstawie mapy priorytetów
+        this.editedBoard.columns.sort((a, b) => {
+          return (priorities[a.name] || 0) - (priorities[b.name] || 0);
+        });
+        await this.$store.dispatch(
+          "board/editBoardAndColumns",
+          JSON.stringify(this.editedBoard)
+        );
+        console.log(
+          "Po wysłaniu, stan columnDetails:",
+          JSON.stringify(this.columnsDetails)
+        );
+        // await this.$store.dispatch("board/selectBoard", this.editedBoard);
+        await this.$store.dispatch("board/getBoard", this.currentBoardId);
+        await this.$store.dispatch(`board/fetchBoards`);
+        this.dialog = false;
+      }
     },
     reset() {
       this.$refs.form.reset();
@@ -147,56 +218,15 @@ export default {
     resetValidation() {
       this.$refs.form.resetValidation();
     },
-    addSubtask() {
-      this.newTask.subtasks.push({ title: "", isCompleted: false });
-      this.$refs.form.validate();
-    },
-    removeSubtask(index) {
-      this.newTask.subtasks.splice(index, 1);
-      this.$refs.form.validate();
-    },
-    handleStatusChange() {
-      console.log("selectedStatusId przed:", this.selectedStatusId);
-      const selectedStatus = this.columnsDetails.find(
-        (status) => status.id === this.selectedStatusId
-      );
-      if (selectedStatus) {
-        console.log("Znaleziony status:", selectedStatus.name);
-        this.newTask.status = selectedStatus.name;
-      }
-      console.log("selectedStatusId po:", this.selectedStatusId);
-    },
-    async sendNewTask() {
-      const payload = {
-        newTask: this.newTask,
-        boardId: this.currentBoardId,
-        statusId: this.selectedStatusId,
-      };
-      if (this.$refs.form.validate()) {
-        await this.$store.dispatch("board/putNewTask", payload);
-        await this.$store.dispatch("board/fetchBoards");
-        this.dialog = false;
-        this.$refs.form.reset();
-      }
-      await this.$store.dispatch("board/getBoard", this.currentBoardId);
-    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-@import "./assets/breakpoints.scss";
-@import "./assets/mixins.scss";
+@import "/assets/breakpoints.scss";
+@import "/assets/mixins.scss";
 .dialog {
   padding: 1.2rem;
-  .subTask {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    .removeIcon {
-      margin: 1.1rem;
-    }
-  }
   .title {
     font-family: $font;
     font-weight: 700;
@@ -241,22 +271,14 @@ export default {
       }
     }
   }
-  .btnPlus {
-    border-radius: 50%;
-    font-size: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 5px;
-    margin-left: -10px;
-  }
 }
 .plus {
-  color: $white;
-  font-size: 20px;
+  border-radius: 50%;
+  font-size: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-weight: 700;
+  margin-right: 5px;
+  margin-left: -10px;
 }
 </style>

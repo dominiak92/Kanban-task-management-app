@@ -21,10 +21,10 @@ export default {
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
-  css: ['normalize.css', '~/assets/main.css'],
+  css: ["normalize.css", "~/assets/main.css"],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [],
+  plugins: ["~/plugins/event-bus.js"],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
@@ -33,7 +33,7 @@ export default {
   buildModules: [
     // https://go.nuxtjs.dev/vuetify
     "@nuxtjs/vuetify",
-    '@nuxtjs/fontawesome',
+    "@nuxtjs/fontawesome",
   ],
   fontawesome: {
     component: "Fa",
@@ -48,7 +48,7 @@ export default {
   modules: [
     // https://go.nuxtjs.dev/axios
     "@nuxtjs/axios",
-    '@nuxtjs/auth-next',
+    "@nuxtjs/auth-next",
   ],
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
@@ -61,19 +61,19 @@ export default {
     strategies: {
       local: {
         token: {
-          property: 'token', // nazwa pola w odpowiedzi z serwera zawierającej JWT
+          property: "token", // nazwa pola w odpowiedzi z serwera zawierającej JWT
         },
         user: {
-          property: '', // nazwa pola w odpowiedzi z serwera zawierającej dane użytkownika
+          property: "", // nazwa pola w odpowiedzi z serwera zawierającej dane użytkownika
         },
         endpoints: {
-          login: { url: 'users/login', method: 'post' }, // endpoint do logowania
+          login: { url: "users/login", method: "post" }, // endpoint do logowania
           logout: false, // endpoint do wylogowania
-          user: { url: 'users/me', method: 'get' }, // endpoint do pobrania danych zalogowanego użytkownika 
+          user: { url: "users/me", method: "get" }, // endpoint do pobrania danych zalogowanego użytkownika
         },
       },
     },
-  }, 
+  },
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {

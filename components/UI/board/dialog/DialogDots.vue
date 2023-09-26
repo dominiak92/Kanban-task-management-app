@@ -11,15 +11,19 @@
         v-bind="attrs"
         v-on="on"
         class="dots"
-        :style="{ color: '#828FA3' }"
+        :style="{ color: '#828FA3', fontSize: '1.3rem' }"
         :icon="['fa', 'ellipsis-vertical']"
       />
     </template>
     <v-card class="mx-auto" width="300" tile>
       <v-list light rounded>
         <div class="btns">
-          <DeleteBoard @update:dialog="menu = $event"  />
-          <EditBoard />
+          <EditTask/>
+          <DeleteTask
+            @update:dialog="menu = $event"
+            :column="column"
+            :task="task"
+          />
         </div>
       </v-list>
     </v-card>
@@ -27,14 +31,21 @@
 </template>
 
 <script>
-import DeleteBoard from "./DeleteBoard.vue";
-import EditBoard from "./EditBoard.vue";
-
+import EditTask from "./EditTask.vue";
+import DeleteTask from "./DeleteTask.vue";
 export default {
-  name: "ThreeDots",
+  name: "DialogDots",
   components: {
-    DeleteBoard,
-    EditBoard,
+    DeleteTask,
+    EditTask
+  },
+  props: {
+    column: {
+      type: Object,
+    },
+    task: {
+      type: Object,
+    },
   },
 
   data() {
@@ -63,7 +74,7 @@ export default {
   .dots {
     box-sizing: content-box;
     padding: 0.3rem;
-    font-size: 20px;
+    font-size: 310px;
   }
 }
 

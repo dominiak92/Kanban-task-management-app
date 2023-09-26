@@ -15,13 +15,7 @@ export const mutations = {
     state.singleBoard = data;
   },
   UPDATE_CURRENT_COLUMNS(state, newColumns) {
-    console.log(
-      `Stan przed update w vuex ${JSON.stringify(state.currentColumns)}`
-    );
     state.currentColumns = newColumns;
-    console.log(
-      `Stan po update w vuex ${JSON.stringify(state.currentColumns)}`
-    );
   },
   SET_LOADING(state, value) {
     state.isLoading = value;
@@ -133,6 +127,15 @@ export const actions = {
       await this.$axios.$delete(`/boards/${id}`);
     } catch (error) {
       console.error("Error when deleting board", error);
+    }
+  },
+  // Delete task by ID
+  async deleteTask({ state }, payload) {
+    try {
+      const { columnId, taskId } = payload;
+      await this.$axios.$delete(`/boards/${state.currentBoardId}/columns/${columnId}/tasks/${taskId}`);
+    } catch (error) {
+      console.error("Error when deleting task", error);
     }
   },
 

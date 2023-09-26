@@ -1,44 +1,60 @@
 <template>
-  <div class="allColumnWrapper">
-    <div class="columnWrapper">
-      <div
-        class="status"
-        :class="{
-          blue: column.name === 'Todo',
-          deepblue: column.name === 'Doing',
-          green: column.name === 'Done',
-        }"
-      >
-        <fa class="icon" :icon="['fa', 'circle']" />
-        <p :style="{ color: '#828FA3' }">
-          {{ column.name.toUpperCase() }} ({{ column.tasks.length }})
-        </p>
-      </div>
-      <draggable
-
-        group="tasks"
-        :scroll="true"
-        @change="onColumnChange(columnName)"
-      >
-        <div v-for="task in column.tasks" class="task" :key="task._id">
-          <p class="taskName">{{ task.title }}</p>
-          <p class="subtaskCounter">
-            {{ subtaskCounter(task) }}
-          </p>
-        </div>
-      </draggable>
-    </div>
-  </div>
+  <v-dialog
+    v-model="dialog"
+    light
+    transition="slide-x-transition"
+    width="600px"
+  >
+    <template v-slot:activator="{ on, attrs }">
+      <div class="allColumnWrapper" v-on="on" v-bind="attrs">
+        <div class="columnWrapper">
+          <div
+            class="status"
+            :class="{
+              blue: column.name === 'Todo',
+              deepblue: column.name === 'Doing',
+              green: column.name === 'Done',
+            }"
+          >
+            <fa class="icon" :icon="['fa', 'circle']" />
+            <p :style="{ color: '#828FA3' }">
+              {{ column.name.toUpperCase() }} ({{ column.tasks.length }})
+            </p>
+          </div>
+          <draggable
+            group="tasks"
+            :scroll="true"
+            @change="onColumnChange(columnName)"
+          >
+            <div
+              v-for="task in column.tasks"
+              class="task"
+              :key="task._id"
+              @click="setSelectedTask(task)"
+            >
+              <p class="taskName">{{ task.title }}</p>
+              <p class="subtaskCounter">
+                {{ subtaskCounter(task) }}
+              </p>
+            </div>
+          </draggable>
+        </div></div
+    ></template>
+    <ColumnDialog :task="selectedTask" :column="column" />
+  </v-dialog>
 </template>
 
 <script>
 import VueHorizontal from "vue-horizontal";
 import draggable from "vuedraggable";
+import ColumnDialog from "./dialog/ColumnDialog.vue";
+import { EventBus } from '~/plugins/event-bus';
 export default {
   name: "TheColumn",
   components: {
     draggable,
     VueHorizontal,
+    ColumnDialog,
   },
   props: {
     column: {
@@ -48,12 +64,26 @@ export default {
 
   data() {
     return {
-      subtasks: 0,
+      attrs: {},
+      on: {},
+      dialog: false,
+      selectedTask: null,
     };
   },
   computed: {},
+  mounted() {
+    EventBus.$on("closeParentDialog", () => {
+      console.log("przed " + this.dialog);
+      this.dialog = false;
+      console.log("po " + this.dialog);
+    });
+  },
   watch: {},
   methods: {
+    setSelectedTask(task) {
+      this.selectedTask = task;
+    },
+
     subtaskCounter(task) {
       let completedSubtasks = 0;
 
@@ -110,7 +140,6 @@ export default {
       justify-content: center;
       align-items: center;
       width: 17.5rem;
-      height: 5.5rem;
       flex-shrink: 0;
       gap: 0.5rem;
       margin-top: 1.25rem;
@@ -125,6 +154,7 @@ export default {
         font-size: 0.9375rem;
         font-style: normal;
         font-weight: 700;
+        white-space: normal;
         line-height: normal;
       }
       .subtaskCounter {
